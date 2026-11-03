@@ -53,6 +53,14 @@ function getTierForMode(tiers:any, gm:string){
   return tiers[gm] || null;
 }
 
+// NEW RANK COLORS - GOLD / SILVER / BRONZE
+function getRankStyle(rank: number){
+  if(rank === 1) return "bg-[#fbbf24] text-black shadow-[0_0_15px_rgba(251,191,36,0.6)]";
+  if(rank === 2) return "bg-[#C0C0C0] text-black shadow-[0_0_12px_rgba(192,192,192,0.6)]";
+  if(rank === 3) return "bg-[#CD7F32] text-white shadow-[0_0_12px_rgba(205,127,50,0.6)]";
+  return "bg-[#1e2535] text-zinc-400";
+}
+
 export default function Home() {
   const [activeTier, setActiveTier] = useState("Overall");
   const [search, setSearch] = useState("");
@@ -90,7 +98,6 @@ export default function Home() {
     <main className="min-h-screen bg-[#0f141f] text-white">
       <div className="max-w-[1300px] mx-auto px-4 pt-4">
         <nav className="bg-[#151a25]/90 rounded-2xl border border-[#222836] px-6 py-3 flex justify-between items-center">
-          {/* LEGACY BOLD AQUA GLOW + TIERS BOLD GOLDEN GLOW */}
           <h1 className="font-black text-[26px] tracking-tight flex gap-2.5 items-center" style={{fontFamily:'Inter, monospace', fontWeight: 900}}>
             <img src="/logo.png" className="w-9 h-9 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"/>
             <span className="flex">
@@ -121,17 +128,16 @@ export default function Home() {
           {filtered.map((p:any,idx:number)=>{
             const rank=idx+1;
             const titleStyle = getTitleStyle(p.points||0);
-            const rankColor=rank===1?"bg-[#fbbf24] text-black shadow-[0_0_12px_rgba(251,191,36,0.5)]":"bg-[#1e2535] text-zinc-400";
+            const rankStyle = getRankStyle(rank);
             return(
               <div key={p.discordId} onClick={()=>setSelected(p)} className="bg-[#151a25] border border-[#222836] rounded-xl flex items-center px-2 py-2 cursor-pointer hover:bg-[#1c2333]">
-                <div className={`w-14 h-14 flex items-center justify-center font-black italic text-xl rounded-l-lg ${rankColor}`} style={{clipPath:"polygon(0 0, 80% 0, 100% 100%, 0 100%)"}}>{rank}.</div>
+                <div className={`w-14 h-14 flex items-center justify-center font-black italic text-xl rounded-l-lg ${rankStyle}`} style={{clipPath:"polygon(0 0, 80% 0, 100% 100%, 0 100%)"}}>{rank}.</div>
                 <img src={`https://mc-heads.net/avatar/${p.ign}/100`} className="w-12 h-12 ml-3 rounded"/>
                 <div className="ml-4 flex flex-col">
                   <span className="font-extrabold text-[15px]">{p.ign}</span>
                   <span className={`text-xs font-black ${titleStyle.color}`}>⬦ {titleStyle.name} ({p.points||0} points)</span>
                 </div>
                 <div className="ml-auto md:ml-8"><span className="px-3 py-1 rounded-md text-xs font-black border bg-red-500/20 text-red-400">{p.region||"ME"}</span></div>
-                {/* BOLD HT3 / LT3 OUTSIDE */}
                 <div className="hidden md:flex gap-2.5 ml-6 mr-2">
                   {GAMEMODE_ORDER.map(gm=>{
                     const tier=getTierForMode(p.tiers,gm);
@@ -157,6 +163,8 @@ export default function Home() {
 
       {selected && (() => {
         const titleStyle = getTitleStyle(selected.points||0);
+        const selRank = players.findIndex((p:any)=>p.discordId===selected.discordId)+1;
+        const selRankStyle = getRankStyle(selRank);
         return (
         <div onClick={()=>setSelected(null)} className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div onClick={e=>e.stopPropagation()} className="bg-[#101522] border border-[#1e2535] rounded-[20px] w-full max-w-[400px] p-6 relative">
@@ -175,7 +183,7 @@ export default function Home() {
             <div className="mt-8">
               <h3 className="text-zinc-500 font-black text-[20px] mb-3">POSITION</h3>
               <div className="bg-[#151a25] border border-[#222836] rounded-xl flex items-center overflow-hidden">
-                <div className="bg-[#fbbf24] text-black font-black italic text-[28px] px-5 py-2.5" style={{clipPath:"polygon(0 0, 80% 0, 100% 100%, 0 100%)"}}>{players.findIndex((p:any)=>p.discordId===selected.discordId)+1}.</div>
+                <div className={`font-black italic text-[28px] px-5 py-2.5 ${selRankStyle}`} style={{clipPath:"polygon(0 0, 80% 0, 100% 100%, 0 100%)"}}>{selRank}.</div>
                 <div className="flex items-center gap-2 ml-4"><span className="text-[#fbbf24] text-xl">🏆</span><span className="font-black">OVERALL</span><span className="text-zinc-500 font-bold">({selected.points||0} points)</span></div>
               </div>
             </div>
