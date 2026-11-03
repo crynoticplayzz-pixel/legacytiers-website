@@ -2,26 +2,19 @@
 import path from 'path'
 
 const getFilePath = () => {
-  const possiblePaths = [
-    path.join(process.cwd(), 'data', 'leaderboard.json'),
-    path.join(process.cwd(), 'app', 'data', 'leaderboard.json'),
-    path.join(process.cwd(), '..', 'data', 'leaderboard.json')
-  ]
-  for(let p of possiblePaths){
-    if(fs.existsSync(p)) return p
-  }
-  return path.join(process.cwd(), 'data', 'leaderboard.json')
+  const p1 = path.join(process.cwd(), 'data', 'leaderboard.json')
+  if (fs.existsSync(p1)) return p1
+  return p1
 }
 
 export async function GET(){
   try {
     const filePath = getFilePath()
-    console.log('Reading from:', filePath, 'exists:', fs.existsSync(filePath))
     if (!fs.existsSync(filePath)) return Response.json([])
     const data = fs.readFileSync(filePath, 'utf8')
     return Response.json(JSON.parse(data))
   } catch(e) {
-    return Response.json({ error: e.message, path: getFilePath() }, { status: 500 })
+    return Response.json([])
   }
 }
 
@@ -34,7 +27,7 @@ export async function POST(req){
     if(fs.existsSync(filePath)) leaderboard = JSON.parse(fs.readFileSync(filePath, 'utf8')) 
   }catch{ leaderboard = [] }
 
-  const POINTS = { \"HT1\":60,\"HT2\":40,\"HT3\":20,\"LT1\":10,\"LT2\":5,\"LT3\":2 }
+  const POINTS = { "HT1":60,"HT2":40,"HT3":20,"LT1":10,"LT2":5,"LT3":2 }
   let total = 0
   if(data.tiers){
     for(let gm in data.tiers){ total += POINTS[data.tiers[gm]] || 0 }
