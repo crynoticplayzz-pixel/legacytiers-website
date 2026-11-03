@@ -1,26 +1,30 @@
-import fs from 'fs'
+﻿import fs from 'fs'
 import path from 'path'
 
 const getFilePath = () => {
-  // Vercel pe /tmp use hota hai, local pe website/data
-  const dataDir = path.join(process.cwd(), 'data')
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true })
-  return path.join(dataDir, 'leaderboard.json')
+  const possiblePaths = [
+    path.join(process.cwd(), 'data', 'leaderboard.json'),
+    path.join(process.cwd(), 'app', 'data', 'leaderboard.json'),
+    path.join(process.cwd(), '..', 'data', 'leaderboard.json')
+  ]
+  for(let p of possiblePaths){
+    if(fs.existsSync(p)) return p
+  }
+  return path.join(process.cwd(), 'data', 'leaderboard.json')
 }
 
-// GET - website ranking dikhane ke liye
 export async function GET(){
   try {
     const filePath = getFilePath()
+    console.log('Reading from:', filePath, 'exists:', fs.existsSync(filePath))
     if (!fs.existsSync(filePath)) return Response.json([])
     const data = fs.readFileSync(filePath, 'utf8')
     return Response.json(JSON.parse(data))
-  } catch {
-    return Response.json([])
+  } catch(e) {
+    return Response.json({ error: e.message, path: getFilePath() }, { status: 500 })
   }
 }
 
-// POST - bot se data aane ke liye
 export async function POST(req){
   const data = await req.json()
   const filePath = getFilePath()
@@ -30,8 +34,7 @@ export async function POST(req){
     if(fs.existsSync(filePath)) leaderboard = JSON.parse(fs.readFileSync(filePath, 'utf8')) 
   }catch{ leaderboard = [] }
 
-  // Tere points ke hisab se - HT1=60 jo tune page.tsx me diya tha
-  const POINTS = { "HT1":60,"HT2":40,"HT3":20,"LT1":10,"LT2":5,"LT3":2 }
+  const POINTS = { \"HT1\":60,\"HT2\":40,\"HT3\":20,\"LT1\":10,\"LT2\":5,\"LT3\":2 }
   let total = 0
   if(data.tiers){
     for(let gm in data.tiers){ total += POINTS[data.tiers[gm]] || 0 }
@@ -58,9 +61,8 @@ export async function POST(req){
     })
   }
   
-  // Points ke hisab se sort
   leaderboard.sort((a,b) => b.points - a.points)
   
-  fs.writeFileSync(filePath, JSON.stringify(leaderboard, null, 2))
+  try{ fs.writeFileSync(filePath, JSON.stringify(leaderboard, null, 2)) }catch{}
   return Response.json({ success: true, points: total })
 }
