@@ -50,9 +50,8 @@ function getTierForMode(tiers:any, gm:string){
   }
   const key = gm.toLowerCase();
   if(key === "vanilla") return tiers.vanilla || tiers.cpvp || tiers.Vanilla || tiers.CPVP || null;
-  // FIXED: spearmace = ONLY spear, not mace
   if(key === "spear") return tiers.spear || tiers.spearmace || null;
-  if(key === "mace") return tiers.mace || null; // spearmace se mace mat lo
+  if(key === "mace") return tiers.mace || null;
   return tiers[key] || tiers[gm] || tiers[gm.toUpperCase()] || null;
 }
 function getRankStyle(rank: number){
@@ -87,13 +86,9 @@ export default function Home() {
               try { tiers = JSON.parse(tiers); } catch(e){ tiers = {}; }
             }
             if(!tiers) tiers = {};
-            // FIXED: spearmace = spear only
             if(tiers.spearmace){
               if(!tiers.spear) tiers.spear = tiers.spearmace;
               delete tiers.spearmace;
-              // agar purane data me mace bhi spearmace ki wajah se bana hai toh delete mat karo, bot sahi karega
-              // lekin agar dono spearmace se bane the toh mace ko hata do
-              // iske liye hum mace ko tabhi rakhenge jab wo alag se diya gaya ho
             }
             if(tiers.cpvp && !tiers.vanilla) tiers.vanilla = tiers.cpvp;
             p.tiers = tiers;
@@ -211,12 +206,11 @@ export default function Home() {
         let tiers = selected.tiers;
         if(typeof tiers === 'string'){ try{ tiers = JSON.parse(tiers); } catch{} }
         if(tiers?.cpvp){ if(!tiers.vanilla) tiers.vanilla=tiers.cpvp; }
-        // FIXED: spearmace = spear only
         if(tiers?.spearmace){ if(!tiers.spear) tiers.spear=tiers.spearmace; delete tiers.spearmace; }
         const regionStyle = getRegionStyle(selected.region||"ME");
         return (
         <div onClick={()=>setSelected(null)} className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div onClick={e=>e.stopPropagation()} className="bg-[#121826] border border-[#1e2535] rounded-[22px] w-full max-w-[440px] p-0 relative overflow-hidden">
+          <div onClick={e=>e.stopPropagation()} className="bg-[#121826] border border-[#1e2535] rounded-[22px] w-full max-w-[460px] p-0 relative overflow-hidden max-h-[90vh] overflow-y-auto">
             <button onClick={()=>setSelected(null)} className="absolute top-4 right-4 w-10 h-10 bg-[#1e2535] hover:bg-[#252e42] rounded-full flex items-center justify-center text-xl z-20">✕</button>
             <div className="flex flex-col items-center pt-10 pb-6 px-6">
               <div className="w-[112px] h-[112px] rounded-full border-[2px] border-[#fbbf24] p-[3px] bg-[#0e121a] shadow-[0_0_20px_rgba(251,191,36,0.3)]">
@@ -234,19 +228,27 @@ export default function Home() {
               </div>
               <div className="w-full mt-7 text-left">
                 <h3 className="text-[#5a647a] font-black text-[20px] tracking-wide mb-3">TIERS</h3>
-                <div className="bg-[#0e121a] border border-[#1e2535] rounded-xl p-3">
-                  <div className="flex justify-between gap-1">
+                <div className="bg-[#0e121a] border border-[#1e2535] rounded-xl p-4">
+                  <div className="grid grid-cols-5 gap-3">
                     {GAMEMODE_ORDER.map(gm=>{
-                      const tier = tiers[gm];
-                      if(!tier) return <div key={gm} className="flex-1 opacity-20"><div className="w-[42px] h-[42px] rounded-full bg-[#161a27] border border-[#1e2535] mx-auto"/></div>;
+                      const tier = getTierForMode(tiers, gm);
+                      if(!tier) return (
+                        <div key={gm} className="flex flex-col items-center opacity-25">
+                          <div className="w-[44px] h-[44px] rounded-full bg-[#161a27] border border-[#1e2535] flex items-center justify-center">
+                            <img src={GAMEMODE_ICONS[gm]} className="w-[22px] h-[22px] object-contain grayscale"/>
+                          </div>
+                          <span className="text-[9px] font-bold mt-1 text-zinc-600">{gm.toUpperCase()}</span>
+                        </div>
+                      );
                       let badgeClass = tier.startsWith("HT") ? "bg-[#5e320a] text-[#ff8c1a] border-[#8a4a0a]/50" : "bg-[#232a36] text-[#9ca3af] border-zinc-600/30";
                       if(tier==="HT1") badgeClass="bg-[#3f2f0a] text-[#fbbf24] border-amber-600/30";
                       return(
-                        <div key={gm} className="flex flex-col items-center flex-1">
+                        <div key={gm} className="flex flex-col items-center">
                           <div className="w-[44px] h-[44px] rounded-full bg-[#161a27] border border-[#222b3e] flex items-center justify-center">
                             <img src={GAMEMODE_ICONS[gm]} className="w-[22px] h-[22px] object-contain"/>
                           </div>
-                          <span className={`text-[11px] font-black mt-[8px] px-[6px] py-[2px] rounded-[6px] border ${badgeClass}`}>{tier}</span>
+                          <span className="text-[8px] font-black mt-1 text-zinc-500">{gm.toUpperCase()}</span>
+                          <span className={`text-[11px] font-black mt-1 px-2 py-0.5 rounded-md border ${badgeClass}`}>{tier}</span>
                         </div>
                       )
                     })}
