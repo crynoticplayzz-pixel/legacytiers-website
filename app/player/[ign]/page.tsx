@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useParams } from "next/navigation";
 
-export default function PlayerPage(){
+function PlayerContent(){
   const { ign } = useParams();
   const [p,setP] = useState<any>(null);
 
@@ -28,4 +28,8 @@ export default function PlayerPage(){
       </div>
     </main>
   )
+}
+
+export default function PlayerPage(){
+  return <Suspense fallback={<div className="min-h-screen bg-[#0e121a] text-white p-10">Loading...</div>}><PlayerContent /></Suspense>
 }
