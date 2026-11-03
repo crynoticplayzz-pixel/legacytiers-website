@@ -1,4 +1,4 @@
-import leaderboardData from '@/data/leaderboard.json'
+import leaderboardData from '../../../../data/leaderboard.json'
 
 export async function GET(){
   return Response.json(leaderboardData)
