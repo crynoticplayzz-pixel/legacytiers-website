@@ -8,6 +8,7 @@ const TIERS = [
   { id: "Pot", label: "Pot", icon: "/icons/pot.png" },
   { id: "NethPot", label: "NethPot", icon: "/icons/nethpot.png" },
   { id: "SMP", label: "SMP", icon: "/icons/smp.png" },
+  { id: "DiaSMP", label: "DiaSMP", icon: "/icons/diasmp.png" },
   { id: "Sword", label: "Sword", icon: "/icons/sword.png" },
   { id: "Axe", label: "Axe", icon: "/icons/axe.png" },
   { id: "Mace", label: "Mace", icon: "/icons/mace.png" },
@@ -43,17 +44,20 @@ function getTitleStyle(points: number){
   for(const t of ACHIEVEMENT_TITLES){ if(points >= t.min) return t; }
   return ACHIEVEMENT_TITLES[ACHIEVEMENT_TITLES.length-1];
 }
+
 function getTierForMode(tiers:any, gm:string){
   if(!tiers) return null;
   if(typeof tiers === 'string'){
-    try { tiers = JSON.parse(tiers); } catch{}
+    try { tiers = JSON.parse(tiers); } catch{ return null }
   }
   const key = gm.toLowerCase();
-  if(key === "vanilla") return tiers.vanilla || tiers.cpvp || tiers.Vanilla || tiers.CPVP || null;
+  if(key === "vanilla") return tiers.vanilla || tiers.cpvp || null;
   if(key === "spear") return tiers.spear || tiers.spearmace || null;
-  if(key === "mace") return tiers.mace || null;
-  return tiers[key] || tiers[gm] || tiers[gm.toUpperCase()] || null;
+  if(key === "smp") return tiers.smp || tiers.nethsmp || null; // NethSMP = SMP
+  if(key === "diasmp") return tiers.diasmp || null; // DiaSMP alag rahega
+  return tiers[key] || null;
 }
+
 function getRankStyle(rank: number){
   if(rank === 1) return "bg-[#fbbf24] text-black shadow-[0_0_20px_rgba(251,191,36,0.8)]";
   if(rank === 2) return "bg-[#C0C0C0] text-black shadow-[0_0_15px_rgba(192,192,192,0.6)]";
@@ -86,12 +90,22 @@ export default function Home() {
               try { tiers = JSON.parse(tiers); } catch(e){ tiers = {}; }
             }
             if(!tiers) tiers = {};
-            if(tiers.spearmace){
-              if(!tiers.spear) tiers.spear = tiers.spearmace;
-              delete tiers.spearmace;
+            const low: any = {};
+            Object.keys(tiers).forEach(k => low[k.toLowerCase()] = tiers[k]);
+
+            if(low.spearmace && !low.spear) low.spear = low.spearmace;
+            if(low.cpvp && !low.vanilla) low.vanilla = low.cpvp;
+            if(low.nethsmp && !low.smp) low.smp = low.nethsmp; // FIX: NethSMP -> SMP
+
+            delete low.spearmace;
+            delete low.cpvp;
+            delete low.nethsmp;
+
+            const finalTiers: any = {};
+            for(let k in low){
+              finalTiers[k.toLowerCase()] = (low[k] || "").toString().toUpperCase();
             }
-            if(tiers.cpvp && !tiers.vanilla) tiers.vanilla = tiers.cpvp;
-            p.tiers = tiers;
+            p.tiers = finalTiers;
             return p;
           });
           setPlayers(clean.sort((a,b)=>b.points-a.points));
@@ -107,7 +121,8 @@ export default function Home() {
     if(search && !p.ign?.toLowerCase().includes(search.toLowerCase())) return false;
     if(activeTier==="Overall") return true;
     const key=activeTier.toLowerCase();
-    if(key==="vanilla") return p.tiers?.vanilla || p.tiers?.cpvp;
+    if(key==="vanilla") return p.tiers?.vanilla;
+    if(key==="smp") return p.tiers?.smp; // nethsmp already merged
     return p.tiers?.[key];
   });
 
@@ -210,8 +225,6 @@ export default function Home() {
         const selRank = players.findIndex((p:any)=>p.discordId===selected.discordId)+1;
         let tiers = selected.tiers;
         if(typeof tiers === 'string'){ try{ tiers = JSON.parse(tiers); } catch{} }
-        if(tiers?.cpvp){ if(!tiers.vanilla) tiers.vanilla=tiers.cpvp; }
-        if(tiers?.spearmace){ if(!tiers.spear) tiers.spear=tiers.spearmace; delete tiers.spearmace; }
         const regionStyle = getRegionStyle(selected.region||"ME");
         return (
         <div onClick={()=>setSelected(null)} className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
