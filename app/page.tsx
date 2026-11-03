@@ -162,6 +162,7 @@ export default function Home() {
               <h2 className="text-[28px] font-black mt-4 tracking-tight text-[#dbeafe]">{selected.ign}</h2>
               <div className={`mt-3 ${titleStyle.bg} border ${titleStyle.border} px-5 py-2 rounded-full flex items-center gap-2`}><span className="text-[#fbbf24] text-[20px]">⬣</span><span className="text-[#fbbf24] text-[15px] font-bold">{titleStyle.name}</span></div>
               <div className={`mt-3 px-3 py-1 rounded-full text-sm font-black border ${regionStyle}`}>{selected.region==="ME"?"Middle East":selected.region==="EU"?"Europe":selected.region==="AS"||selected.region==="AU"?"Asia":"North America"} - {selected.region}</div>
+              
               <div className="w-full mt-8 text-left">
                 <h3 className="text-[#5a647a] font-black text-[20px] tracking-wide mb-3">POSITION</h3>
                 <div className="bg-[#151a25] border border-[#1e2535] rounded-xl flex items-center overflow-hidden h-[52px]">
@@ -169,10 +170,48 @@ export default function Home() {
                   <div className="flex items-center gap-2.5 ml-4"><span className="text-[#fbbf24] text-[22px]">🏆</span><span className="font-black text-[18px] tracking-wide">OVERALL</span><span className="text-zinc-500 font-bold text-[15px]">({selected.points||0} points)</span></div>
                 </div>
               </div>
+
               <div className="w-full mt-7 text-left">
                 <h3 className="text-[#5a647a] font-black text-[20px] tracking-wide mb-3">TIERS</h3>
-                <div className="bg-[#151a25] border border-[#1e2535] rounded-xl p-3"><div className="flex justify-between gap-1">{GAMEMODE_ORDER.map(gm=>{const tier = tiers[gm]; if(!tier) return <div key={gm} className="flex-1"/>; const isHT = tier.startsWith("HT"); return(<div key={gm} className="flex flex-col items-center flex-1"><div className={`w-9 h-9 rounded-full flex items-center justify-center bg-[#0e121a] border ${isHT ? 'border-amber-500/30' : 'border-zinc-700/50'}`}><img src={GAMEMODE_ICONS[gm]} className="w-5 h-5"/></div><span className={`text-[11px] font-black mt-1.5 px-2 py-0.5 rounded-full ${isHT ? 'bg-[#2a1f0a] text-[#fbbf24] border border-amber-500/20' : 'bg-[#1e2535] text-zinc-400'}`} style={{fontWeight:900}}>{tier}</span></div>)})}</div></div>
+                {/* UPDATED TIERS DESIGN - LIKE YOUR SCREENSHOT */}
+                <div className="bg-[#0e121a] border border-[#1e2535] rounded-xl p-3">
+                  <div className="flex justify-between gap-1">
+                    {GAMEMODE_ORDER.map(gm=>{
+                      const tier = tiers[gm];
+                      if(!tier){
+                        return (
+                          <div key={gm} className="flex flex-col items-center flex-1 opacity-20">
+                            <div className="w-[42px] h-[42px] rounded-full bg-[#161a27] border border-[#1e2535]"/>
+                            <div className="w-6 h-3 mt-2 bg-[#161a27] rounded"/>
+                          </div>
+                        )
+                      }
+                      const isHT3 = tier === "HT3";
+                      const isHT1 = tier === "HT1";
+                      const isLT2 = tier === "LT2";
+                      
+                      let badgeClass = "";
+                      if(isHT3) badgeClass = "bg-[#5e320a] text-[#ff8c1a] border-[#8a4a0a]/50"; // orange like screenshot
+                      else if(isHT1) badgeClass = "bg-[#3f2f0a] text-[#fbbf24] border-amber-600/30"; // golden
+                      else if(isLT2) badgeClass = "bg-[#252d3a] text-[#9ca3af] border-zinc-600/30"; // grey
+                      else if(tier.startsWith("HT")) badgeClass = "bg-[#3f2f0a] text-[#fbbf24] border-amber-600/30";
+                      else badgeClass = "bg-[#252d3a] text-[#9ca3af] border-zinc-600/30";
+
+                      return(
+                        <div key={gm} className="flex flex-col items-center flex-1">
+                          <div className="w-[44px] h-[44px] rounded-full bg-[#161a27] border border-[#222b3e] flex items-center justify-center shadow-[inset_0_1px_2px_rgba(255,255,255,0.05)]">
+                            <img src={GAMEMODE_ICONS[gm]} className="w-[22px] h-[22px] object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"/>
+                          </div>
+                          <span className={`text-[11px] font-black mt-[8px] px-[6px] py-[2px] rounded-[6px] border leading-none tracking-wide ${badgeClass}`} style={{fontWeight:900, letterSpacing:'0.3px'}}>
+                            {tier}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
+
             </div>
           </div>
         </div>
