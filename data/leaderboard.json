@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "discordId": "123456789",
     "ign": "CrynoticPlayzz",
@@ -10,8 +10,7 @@
       "pot": "HT1",
       "smp": "HT3",
       "sword": "HT2"
-    },
-    "avatar": null
+    }
   },
   {
     "discordId": "987654321",
@@ -20,11 +19,8 @@
     "points": 120,
     "tiers": {
       "vanilla": "HT2",
-      "uhc": "HT1",
-      "pot": "HT2",
-      "nethpot": "LT1"
-    },
-    "avatar": null
+      "uhc": "HT1"
+    }
   },
   {
     "discordId": "111222333",
@@ -36,7 +32,6 @@
       "uhc": "HT1",
       "pot": "HT1",
       "smp": "HT1"
-    },
-    "avatar": null
+    }
   }
 ]
