@@ -181,7 +181,12 @@ export default function Home() {
                   <div className="hidden lg:flex gap-1.5 ml-auto mr-3 shrink-0">
                     {GAMEMODE_ORDER.map(gm=>{
                       const tier=getTierForMode(p.tiers,gm); 
-                      if(!tier) return <div key={gm} className="w-[42px] h-[42px] rounded-full bg-[#0e121a] border border-[#1e2535]/50 opacity-20"/>;
+                      if(!tier) return (
+                        <div key={gm} className="flex flex-col items-center w-[46px]">
+                          <div className="w-[38px] h-[38px] rounded-full border-2 border-dashed border-zinc-600/50 bg-[#0e121a]/60 flex items-center justify-center"></div>
+                          <span className="text-[10px] font-black mt-1 px-2.5 py-0.5 rounded-[5px] border bg-[#1a1f2e] text-zinc-500 border-zinc-700/40">-</span>
+                        </div>
+                      );
                       const isHT = tier.startsWith("HT");
                       return(
                         <div key={gm} className="flex flex-col items-center w-[46px]">
@@ -233,11 +238,10 @@ export default function Home() {
                     {GAMEMODE_ORDER.map(gm=>{
                       const tier = getTierForMode(tiers, gm);
                       if(!tier) return (
-                        <div key={gm} className="flex flex-col items-center opacity-25">
-                          <div className="w-[44px] h-[44px] rounded-full bg-[#161a27] border border-[#1e2535] flex items-center justify-center">
-                            <img src={GAMEMODE_ICONS[gm]} className="w-[22px] h-[22px] object-contain grayscale"/>
-                          </div>
-                          <span className="text-[9px] font-bold mt-1 text-zinc-600">{gm.toUpperCase()}</span>
+                        <div key={gm} className="flex flex-col items-center">
+                          <div className="w-[44px] h-[44px] rounded-full border-2 border-dashed border-zinc-600/50 bg-[#161a27]/50 flex items-center justify-center"></div>
+                          <span className="text-[8px] font-black mt-1 text-zinc-600">{gm.toUpperCase()}</span>
+                          <span className="text-[11px] font-black mt-1 px-3 py-0.5 rounded-md border bg-[#1a1f2e] text-zinc-500 border-zinc-700/40">-</span>
                         </div>
                       );
                       let badgeClass = tier.startsWith("HT") ? "bg-[#5e320a] text-[#ff8c1a] border-[#8a4a0a]/50" : "bg-[#232a36] text-[#9ca3af] border-zinc-600/30";

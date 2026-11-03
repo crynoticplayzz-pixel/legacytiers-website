@@ -1,49 +1,97 @@
-import { kv } from '@vercel/kv'
-import fallback from '../../../../data/leaderboard.json'
+import { kv } from "@vercel/kv";
+import { NextResponse } from "next/server";
 
-const POINTS = { HT1:60, HT2:40, HT3:20, LT1:10, LT2:5, LT3:2 }
-function calcPoints(tiers){
-  let t=0
-  for(let k in (tiers||{})) t+= POINTS[tiers[k]] || 0
-  return t
+const POINTS_MAP = {
+  "HT1": 60, "LT1": 45,
+  "HT2": 30, "LT2": 20,
+  "HT3": 10, "LT3": 6,
+  "HT4": 4,  "LT4": 3,
+  "HT5": 2,  "LT5": 1,
+};
+
+function calcPoints(tiers) {
+  let total = 0;
+  if (!tiers) return 0;
+  if (typeof tiers === 'string') {
+    try { tiers = JSON.parse(tiers); } catch { return 0; }
+  }
+  for (let k in tiers) {
+    const v = (tiers[k] || "").toString().toUpperCase();
+    total += POINTS_MAP[v] || 0;
+  }
+  return total;
 }
 
-export async function GET(){
-  try{
-    const data = await kv.get('leaderboard')
-    if(data && data.length) return Response.json(data)
-    return Response.json(fallback)
-  }catch{
-    return Response.json(fallback)
+function normalizeTiers(tiers) {
+  if (!tiers) return {};
+  if (typeof tiers === 'string') {
+    try { tiers = JSON.parse(tiers); } catch { tiers = {}; }
+  }
+  const t = { ...tiers };
+  if (t.spearmace) {
+    if (!t.spear) t.spear = t.spearmace;
+    delete t.spearmace;
+  }
+  if (t.cpvp && !t.vanilla) {
+    t.vanilla = t.cpvp;
+    delete t.cpvp;
+  }
+  const cleaned = {};
+  for (let k in t) {
+    cleaned[k.toLowerCase()] = (t[k] || "").toString().toUpperCase();
+  }
+  return cleaned;
+}
+
+export async function GET() {
+  try {
+    const data = await kv.get("players");
+    let players = [];
+    
+    if (Array.isArray(data)) {
+      players = data;
+    } else if (data && typeof data === 'object') {
+      players = Object.values(data);
+    }
+    
+    return NextResponse.json(players);
+  } catch (e) {
+    return NextResponse.json([], { status: 200 });
   }
 }
 
-export async function POST(req){
-  try{
-    const body = await req.json()
-    let list = await kv.get('leaderboard')
-    if(!list || !list.length) list = [...fallback]
-    let p = list.find(x => x.discordId === body.discordId || x.ign?.toLowerCase() === body.ign?.toLowerCase())
-    if(p){
-      p.ign = body.ign || p.ign
-      p.region = body.region || p.region
-      p.tiers = { ...p.tiers, ...body.tiers }
-      p.points = calcPoints(p.tiers)
-      p.updatedAt = new Date().toISOString()
-    } else {
-      list.push({
-        discordId: body.discordId,
-        ign: body.ign,
-        region: body.region || "NA",
-        tiers: body.tiers || {},
-        points: calcPoints(body.tiers),
-        updatedAt: new Date().toISOString()
-      })
+export async function POST(req) {
+  try {
+    const body = await req.json();
+    
+    if (!body.discordId) {
+      return NextResponse.json({ error: "discordId missing" }, { status: 400 });
     }
-    list.sort((a,b)=>b.points-a.points)
-    await kv.set('leaderboard', list)
-    return Response.json({ success:true, leaderboard:list })
-  }catch(e){
-    return Response.json({ success:false, error:e.message }, {status:500})
+
+    body.tiers = normalizeTiers(body.tiers);
+    body.points = calcPoints(body.tiers);
+
+    let players = [];
+    const existing = await kv.get("players");
+    
+    if (Array.isArray(existing)) {
+      players = existing;
+    } else if (existing && typeof existing === 'object') {
+      players = Object.values(existing);
+    }
+
+    const idx = players.findIndex((p) => p.discordId === body.discordId);
+    if (idx >= 0) {
+      players[idx] = { ...players[idx], ...body };
+    } else {
+      players.push(body);
+    }
+
+    await kv.set("players", players);
+    
+    return NextResponse.json({ success: true, points: body.points });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
