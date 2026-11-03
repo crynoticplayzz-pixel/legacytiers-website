@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default function PlayerPage(){
   const { ign } = useParams();
   const [p,setP] = useState<any>(null);
