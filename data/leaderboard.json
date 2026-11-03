@@ -1,26 +1,42 @@
 ﻿[
   {
-    \"discordId\": \"123456789\",
-    \"ign\": \"CrynoticPlayzz\",
-    \"region\": \"ME\",
-    \"points\": 180,
-    \"tiers\": { \"vanilla\": \"HT1\", \"uhc\": \"HT2\", \"pot\": \"HT1\", \"smp\": \"HT3\", \"sword\": \"HT2\" },
-    \"avatar\": null
+    "discordId": "123456789",
+    "ign": "CrynoticPlayzz",
+    "region": "ME",
+    "points": 180,
+    "tiers": {
+      "vanilla": "HT1",
+      "uhc": "HT2",
+      "pot": "HT1",
+      "smp": "HT3",
+      "sword": "HT2"
+    },
+    "avatar": null
   },
   {
-    \"discordId\": \"987654321\",
-    \"ign\": \"Notch\",
-    \"region\": \"NA\",
-    \"points\": 120,
-    \"tiers\": { \"vanilla\": \"HT2\", \"uhc\": \"HT1\", \"pot\": \"HT2\", \"nethpot\": \"LT1\" },
-    \"avatar\": null
+    "discordId": "987654321",
+    "ign": "Notch",
+    "region": "NA",
+    "points": 120,
+    "tiers": {
+      "vanilla": "HT2",
+      "uhc": "HT1",
+      "pot": "HT2",
+      "nethpot": "LT1"
+    },
+    "avatar": null
   },
   {
-    \"discordId\": \"111222333\",
-    \"ign\": \"Dream\",
-    \"region\": \"NA\",
-    \"points\": 240,
-    \"tiers\": { \"vanilla\": \"HT1\", \"uhc\": \"HT1\", \"pot\": \"HT1\", \"smp\": \"HT1\" },
-    \"avatar\": null
+    "discordId": "111222333",
+    "ign": "Dream",
+    "region": "NA",
+    "points": 240,
+    "tiers": {
+      "vanilla": "HT1",
+      "uhc": "HT1",
+      "pot": "HT1",
+      "smp": "HT1"
+    },
+    "avatar": null
   }
 ]
