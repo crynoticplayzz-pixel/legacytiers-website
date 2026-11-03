@@ -50,8 +50,9 @@ function getTierForMode(tiers:any, gm:string){
   }
   const key = gm.toLowerCase();
   if(key === "vanilla") return tiers.vanilla || tiers.cpvp || tiers.Vanilla || tiers.CPVP || null;
-  if(key === "spear" && tiers.spearmace) return tiers.spearmace;
-  if(key === "mace" && tiers.spearmace) return tiers.spearmace;
+  // FIXED: spearmace = ONLY spear, not mace
+  if(key === "spear") return tiers.spear || tiers.spearmace || null;
+  if(key === "mace") return tiers.mace || null; // spearmace se mace mat lo
   return tiers[key] || tiers[gm] || tiers[gm.toUpperCase()] || null;
 }
 function getRankStyle(rank: number){
@@ -86,9 +87,13 @@ export default function Home() {
               try { tiers = JSON.parse(tiers); } catch(e){ tiers = {}; }
             }
             if(!tiers) tiers = {};
+            // FIXED: spearmace = spear only
             if(tiers.spearmace){
               if(!tiers.spear) tiers.spear = tiers.spearmace;
-              if(!tiers.mace) tiers.mace = tiers.spearmace;
+              delete tiers.spearmace;
+              // agar purane data me mace bhi spearmace ki wajah se bana hai toh delete mat karo, bot sahi karega
+              // lekin agar dono spearmace se bane the toh mace ko hata do
+              // iske liye hum mace ko tabhi rakhenge jab wo alag se diya gaya ho
             }
             if(tiers.cpvp && !tiers.vanilla) tiers.vanilla = tiers.cpvp;
             p.tiers = tiers;
@@ -206,7 +211,8 @@ export default function Home() {
         let tiers = selected.tiers;
         if(typeof tiers === 'string'){ try{ tiers = JSON.parse(tiers); } catch{} }
         if(tiers?.cpvp){ if(!tiers.vanilla) tiers.vanilla=tiers.cpvp; }
-        if(tiers?.spearmace){ if(!tiers.spear) tiers.spear=tiers.spearmace; if(!tiers.mace) tiers.mace=tiers.spearmace; }
+        // FIXED: spearmace = spear only
+        if(tiers?.spearmace){ if(!tiers.spear) tiers.spear=tiers.spearmace; delete tiers.spearmace; }
         const regionStyle = getRegionStyle(selected.region||"ME");
         return (
         <div onClick={()=>setSelected(null)} className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -231,7 +237,7 @@ export default function Home() {
                 <div className="bg-[#0e121a] border border-[#1e2535] rounded-xl p-3">
                   <div className="flex justify-between gap-1">
                     {GAMEMODE_ORDER.map(gm=>{
-                      const tier = tiers[gm] || (gm==='spear' || gm==='mace' ? tiers['spearmace'] : null);
+                      const tier = tiers[gm];
                       if(!tier) return <div key={gm} className="flex-1 opacity-20"><div className="w-[42px] h-[42px] rounded-full bg-[#161a27] border border-[#1e2535] mx-auto"/></div>;
                       let badgeClass = tier.startsWith("HT") ? "bg-[#5e320a] text-[#ff8c1a] border-[#8a4a0a]/50" : "bg-[#232a36] text-[#9ca3af] border-zinc-600/30";
                       if(tier==="HT1") badgeClass="bg-[#3f2f0a] text-[#fbbf24] border-amber-600/30";
