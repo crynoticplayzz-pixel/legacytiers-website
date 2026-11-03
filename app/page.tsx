@@ -45,8 +45,14 @@ function getTitleStyle(points: number){
 }
 function getTierForMode(tiers:any, gm:string){
   if(!tiers) return null;
-  if(gm === "vanilla") return tiers.vanilla || tiers.cpvp || null;
-  return tiers[gm] || null;
+  if(typeof tiers === 'string'){
+    try { tiers = JSON.parse(tiers); } catch{}
+  }
+  const key = gm.toLowerCase();
+  if(key === "vanilla") return tiers.vanilla || tiers.cpvp || tiers.Vanilla || tiers.CPVP || null;
+  if(key === "spear" && tiers.spearmace) return tiers.spearmace;
+  if(key === "mace" && tiers.spearmace) return tiers.spearmace;
+  return tiers[key] || tiers[gm] || tiers[gm.toUpperCase()] || null;
 }
 function getRankStyle(rank: number){
   if(rank === 1) return "bg-[#fbbf24] text-black shadow-[0_0_20px_rgba(251,191,36,0.8)]";
@@ -75,7 +81,17 @@ export default function Home() {
       fetch('/api/leaderboard/syncall').then(r=>r.json()).then(d=>{
         if(Array.isArray(d)){
           const clean = d.filter((p:any)=>p.ign && p.ign.trim()!=="").map((p:any)=>{
-            if(p.tiers?.cpvp && !p.tiers?.vanilla) p.tiers.vanilla = p.tiers.cpvp;
+            let tiers = p.tiers;
+            if(typeof tiers === 'string'){
+              try { tiers = JSON.parse(tiers); } catch(e){ tiers = {}; }
+            }
+            if(!tiers) tiers = {};
+            if(tiers.spearmace){
+              if(!tiers.spear) tiers.spear = tiers.spearmace;
+              if(!tiers.mace) tiers.mace = tiers.spearmace;
+            }
+            if(tiers.cpvp && !tiers.vanilla) tiers.vanilla = tiers.cpvp;
+            p.tiers = tiers;
             return p;
           });
           setPlayers(clean.sort((a,b)=>b.points-a.points));
@@ -97,7 +113,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#0a0e17] text-white">
-      {/* TOP NAV - ONLY LOGO + RANKING + SEARCH */}
       <div className="w-full px-3 pt-3">
         <nav className="w-full bg-[#151a25]/90 rounded-xl border border-[#1e2535] px-6 py-3.5 flex justify-between items-center max-w-[98%] mx-auto">
           <div className="flex items-center gap-8">
@@ -108,15 +123,12 @@ export default function Home() {
                 <span style={{color:'#fbbf24', fontWeight: 900, textShadow:'0 0 8px rgba(251,191,36,1), 0 0 18px rgba(251,191,36,0.8)'}}>TIERS</span>
               </span>
             </h1>
-            <div className="hidden md:flex items-center gap-2 text-white font-black text-[15px] bg-[#1c2333] border border-[#2a344d] px-5 py-2 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.05)]">
+            <div className="hidden md:flex items-center gap-2 text-white font-black text-[15px] bg-[#1c2333] border border-[#2a344d] px-5 py-2 rounded-full">
               <span>🏆</span> RANKING
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="bg-[#0e121a] border border-[#222836] rounded-full px-4 py-2 flex gap-2">
-              <span className="text-zinc-500">🔍</span>
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search player..." className="bg-transparent outline-none text-sm w-[180px]"/>
-            </div>
+            <div className="bg-[#0e121a] border border-[#222836] rounded-full px-4 py-2 flex gap-2"><span className="text-zinc-500">🔍</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search player..." className="bg-transparent outline-none text-sm w-[180px]"/></div>
             <a href="https://discord.gg/qHhWScQVCe" target="_blank" className="w-10 h-10 bg-[#5865F2] rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(88,101,242,0.7)]">
               <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3847-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
             </a>
@@ -191,8 +203,10 @@ export default function Home() {
       {selected && (() => {
         const titleStyle = getTitleStyle(selected.points||0);
         const selRank = players.findIndex((p:any)=>p.discordId===selected.discordId)+1;
-        const tiers = {...selected.tiers};
-        if(tiers.cpvp){ if(!tiers.vanilla) tiers.vanilla=tiers.cpvp; delete tiers.cpvp; }
+        let tiers = selected.tiers;
+        if(typeof tiers === 'string'){ try{ tiers = JSON.parse(tiers); } catch{} }
+        if(tiers?.cpvp){ if(!tiers.vanilla) tiers.vanilla=tiers.cpvp; }
+        if(tiers?.spearmace){ if(!tiers.spear) tiers.spear=tiers.spearmace; if(!tiers.mace) tiers.mace=tiers.spearmace; }
         const regionStyle = getRegionStyle(selected.region||"ME");
         return (
         <div onClick={()=>setSelected(null)} className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -204,7 +218,7 @@ export default function Home() {
               </div>
               <h2 className="text-[28px] font-black mt-4 tracking-tight text-[#dbeafe]">{selected.ign}</h2>
               <div className={`mt-3 ${titleStyle.bg} border ${titleStyle.border} px-5 py-2 rounded-full flex items-center gap-2`}><span className="text-[#fbbf24] text-[20px]">⬣</span><span className="text-[#fbbf24] text-[15px] font-bold">{titleStyle.name}</span></div>
-              <div className={`mt-3 px-3 py-1 rounded-full text-sm font-black border ${regionStyle}`}>{selected.region} - {selected.region==="ME"?"Middle East":selected.region==="EU"?"Europe":selected.region==="AS"||selected.region==="AU"?"Asia":"North America"}</div>
+              <div className={`mt-3 px-3 py-1 rounded-full text-sm font-black border ${regionStyle}`}>{selected.region}</div>
               <div className="w-full mt-8 text-left">
                 <h3 className="text-[#5a647a] font-black text-[20px] tracking-wide mb-3">POSITION</h3>
                 <div className="bg-[#151a25] border border-[#1e2535] rounded-xl flex items-center overflow-hidden h-[52px]">
@@ -217,10 +231,9 @@ export default function Home() {
                 <div className="bg-[#0e121a] border border-[#1e2535] rounded-xl p-3">
                   <div className="flex justify-between gap-1">
                     {GAMEMODE_ORDER.map(gm=>{
-                      const tier = tiers[gm];
+                      const tier = tiers[gm] || (gm==='spear' || gm==='mace' ? tiers['spearmace'] : null);
                       if(!tier) return <div key={gm} className="flex-1 opacity-20"><div className="w-[42px] h-[42px] rounded-full bg-[#161a27] border border-[#1e2535] mx-auto"/></div>;
-                      const isHT = tier.startsWith("HT");
-                      let badgeClass = isHT ? "bg-[#5e320a] text-[#ff8c1a] border-[#8a4a0a]/50" : "bg-[#232a36] text-[#9ca3af] border-zinc-600/30";
+                      let badgeClass = tier.startsWith("HT") ? "bg-[#5e320a] text-[#ff8c1a] border-[#8a4a0a]/50" : "bg-[#232a36] text-[#9ca3af] border-zinc-600/30";
                       if(tier==="HT1") badgeClass="bg-[#3f2f0a] text-[#fbbf24] border-amber-600/30";
                       return(
                         <div key={gm} className="flex flex-col items-center flex-1">
