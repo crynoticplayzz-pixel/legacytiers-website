@@ -97,24 +97,26 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#0a0e17] text-white">
-      {/* TOP NAV - BIGGER LIKE MCTIERS */}
+      {/* TOP NAV - ONLY LOGO + RANKING + SEARCH */}
       <div className="w-full px-3 pt-3">
         <nav className="w-full bg-[#151a25]/90 rounded-xl border border-[#1e2535] px-6 py-3.5 flex justify-between items-center max-w-[98%] mx-auto">
-          <h1 className="font-black text-[28px] flex gap-2.5 items-center">
-            <img src="/logo.png" className="w-9 h-9"/>
-            <span className="flex tracking-tight">
-              <span style={{color:'#00e5ff', fontWeight: 900, textShadow:'0 0 8px rgba(0,229,255,1), 0 0 18px rgba(0,229,255,0.8)'}}>LEGACY</span>
-              <span style={{color:'#fbbf24', fontWeight: 900, textShadow:'0 0 8px rgba(251,191,36,1), 0 0 18px rgba(251,191,36,0.8)'}}>TIERS</span>
-            </span>
-          </h1>
-          <div className="hidden md:flex items-center gap-6 text-[15px] font-bold text-zinc-400">
-            <span className="flex items-center gap-2 text-zinc-500"><span>🏠</span> Home</span>
-            <span className="flex items-center gap-2 text-white"><span>🏆</span> Rankings</span>
-            <span className="flex items-center gap-2"><span>🎮</span> Discords ▾</span>
-            <span className="flex items-center gap-2"><span>📄</span> API Docs</span>
+          <div className="flex items-center gap-8">
+            <h1 className="font-black text-[28px] flex gap-2.5 items-center">
+              <img src="/logo.png" className="w-9 h-9"/>
+              <span className="flex tracking-tight">
+                <span style={{color:'#00e5ff', fontWeight: 900, textShadow:'0 0 8px rgba(0,229,255,1), 0 0 18px rgba(0,229,255,0.8)'}}>LEGACY</span>
+                <span style={{color:'#fbbf24', fontWeight: 900, textShadow:'0 0 8px rgba(251,191,36,1), 0 0 18px rgba(251,191,36,0.8)'}}>TIERS</span>
+              </span>
+            </h1>
+            <div className="hidden md:flex items-center gap-2 text-white font-black text-[15px] bg-[#1c2333] border border-[#2a344d] px-5 py-2 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.05)]">
+              <span>🏆</span> RANKING
+            </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="bg-[#0e121a] border border-[#222836] rounded-full px-4 py-2 flex gap-2"><span className="text-zinc-500">🔍</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search player...  /" className="bg-transparent outline-none text-sm w-[180px]"/></div>
+            <div className="bg-[#0e121a] border border-[#222836] rounded-full px-4 py-2 flex gap-2">
+              <span className="text-zinc-500">🔍</span>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search player..." className="bg-transparent outline-none text-sm w-[180px]"/>
+            </div>
             <a href="https://discord.gg/qHhWScQVCe" target="_blank" className="w-10 h-10 bg-[#5865F2] rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(88,101,242,0.7)]">
               <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3847-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
             </a>
@@ -122,7 +124,6 @@ export default function Home() {
         </nav>
       </div>
 
-      {/* MAIN - FULL WIDTH BIG LIKE MCTIERS SCREENSHOT */}
       <div className="w-full max-w-[98%] mx-auto px-2 pt-6">
         <div className="flex gap-2 overflow-x-auto pb-2">
           {TIERS.map(t=>{
@@ -154,7 +155,6 @@ export default function Home() {
               const regionStyle = getRegionStyle(p.region||"ME");
               return(
                 <div key={p.discordId} onClick={()=>setSelected(p)} className="bg-[#151a25] border border-[#1e2535] rounded-xl flex items-center px-0 py-0 cursor-pointer hover:bg-[#1c2333] hover:border-[#2a344d] transition h-[78px] overflow-hidden group">
-                  {/* BIG RANK BANNER LIKE MCTIERS */}
                   <div className={`w-[90px] h-full flex items-center justify-center font-black italic text-[32px] ${getRankStyle(rank)} shrink-0`} style={{clipPath:"polygon(0 0, 80% 0, 100% 100%, 0 100%)"}}>
                     {rank}.
                   </div>
@@ -188,7 +188,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* PLAYER CARD MODAL - SAME AS BEFORE BUT BIG */}
       {selected && (() => {
         const titleStyle = getTitleStyle(selected.points||0);
         const selRank = players.findIndex((p:any)=>p.discordId===selected.discordId)+1;
