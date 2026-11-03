@@ -1,5 +1,5 @@
-﻿import { kv } from '@vercel/kv'
-import fallback from '../../../data/leaderboard.json'
+import { kv } from '@vercel/kv'
+import fallback from '../../../../data/leaderboard.json'
 
 const POINTS = { HT1:60, HT2:40, HT3:20, LT1:10, LT2:5, LT3:2 }
 function calcPoints(tiers){
@@ -23,9 +23,7 @@ export async function POST(req){
     const body = await req.json()
     let list = await kv.get('leaderboard')
     if(!list || !list.length) list = [...fallback]
-
     let p = list.find(x => x.discordId === body.discordId || x.ign?.toLowerCase() === body.ign?.toLowerCase())
-
     if(p){
       p.ign = body.ign || p.ign
       p.region = body.region || p.region
@@ -42,7 +40,6 @@ export async function POST(req){
         updatedAt: new Date().toISOString()
       })
     }
-
     list.sort((a,b)=>b.points-a.points)
     await kv.set('leaderboard', list)
     return Response.json({ success:true, leaderboard:list })
