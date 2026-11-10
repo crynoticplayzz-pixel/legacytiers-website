@@ -53,9 +53,18 @@ function getTierForMode(tiers:any, gm:string){
   const key = gm.toLowerCase();
   if(key === "vanilla") return tiers.vanilla || tiers.cpvp || null;
   if(key === "spear") return tiers.spear || tiers.spearmace || null;
-  if(key === "smp") return tiers.smp || tiers.nethsmp || null; // NethSMP = SMP
-  if(key === "diasmp") return tiers.diasmp || null; // DiaSMP alag rahega
+  if(key === "smp") return tiers.smp || tiers.nethsmp || null;
+  if(key === "diasmp") return tiers.diasmp || null;
   return tiers[key] || null;
+}
+
+// ===== NEW: "HT1" / "LT3" ko parse karo -> { region: "HT", tier: 1 } =====
+function parseTierString(raw: any){
+  if(!raw) return null;
+  const s = String(raw).toUpperCase().trim();
+  const m = s.match(/^(HT|LT)\s*([1-5])$/);
+  if(!m) return null;
+  return { region: m[1] as "HT" | "LT", tier: parseInt(m[2]) };
 }
 
 function getRankStyle(rank: number){
@@ -72,6 +81,15 @@ function getRegionStyle(region: string){
   return "bg-zinc-700/20 text-zinc-400 border-zinc-600/30";
 }
 
+// Tier column colors - photo jaisa
+const TIER_COL_STYLES = [
+  { head: "bg-[#4a3205] text-[#fbbf24]", border: "border-l-red-500", badge: "bg-[#3f2f0a] text-[#fbbf24] border-amber-600/30" },
+  { head: "bg-[#2a2f3a] text-zinc-200", border: "border-l-green-500", badge: "bg-[#232a36] text-zinc-300 border-zinc-600/30" },
+  { head: "bg-[#4a2410] text-orange-400", border: "border-l-yellow-400", badge: "bg-[#232a36] text-zinc-300 border-zinc-600/30" },
+  { head: "bg-[#1a2230] text-gray-200", border: "border-l-blue-500", badge: "bg-[#232a36] text-zinc-300 border-zinc-600/30" },
+  { head: "bg-[#1a2230] text-gray-200", border: "border-l-purple-500", badge: "bg-[#232a36] text-zinc-300 border-zinc-600/30" },
+];
+
 export default function Home() {
   const [activeTier, setActiveTier] = useState("Overall");
   const [search, setSearch] = useState("");
@@ -79,6 +97,8 @@ export default function Home() {
   const [selected, setSelected] = useState<any>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [infoTab, setInfoTab] = useState<"Titles"|"Points">("Titles");
+  // ===== NEW: Hover tooltip state =====
+  const [hover, setHover] = useState<{ p: any; region: "HT"|"LT"; tier: number; mode: string; x: number; y: number } | null>(null);
 
   useEffect(() => {
     const load = () => {
@@ -95,7 +115,7 @@ export default function Home() {
 
             if(low.spearmace && !low.spear) low.spear = low.spearmace;
             if(low.cpvp && !low.vanilla) low.vanilla = low.cpvp;
-            if(low.nethsmp && !low.smp) low.smp = low.nethsmp; // FIX: NethSMP -> SMP
+            if(low.nethsmp && !low.smp) low.smp = low.nethsmp;
 
             delete low.spearmace;
             delete low.cpvp;
@@ -122,9 +142,26 @@ export default function Home() {
     if(activeTier==="Overall") return true;
     const key=activeTier.toLowerCase();
     if(key==="vanilla") return p.tiers?.vanilla;
-    if(key==="smp") return p.tiers?.smp; // nethsmp already merged
+    if(key==="smp") return p.tiers?.smp;
     return p.tiers?.[key];
   });
+
+  // ===== NEW: Gamemode ke liye Tier 1-5 buckets banao (bot ke data se) =====
+  const getTierBucket = (tierNum: number) => {
+    const key = activeTier.toLowerCase();
+    return filtered.filter((p:any)=>{
+      const parsed = parseTierString(getTierForMode(p.tiers, key));
+      return parsed && parsed.tier === tierNum;
+    });
+  };
+
+  const onHoverPlayer = (e: React.MouseEvent, p: any, modeName: string) => {
+    const parsed = parseTierString(getTierForMode(p.tiers, modeName.toLowerCase()));
+    if(!parsed) return;
+    setHover({ p, region: parsed.region, tier: parsed.tier, mode: modeName, x: e.clientX, y: e.clientY });
+  };
+
+  const isGamemodeView = activeTier !== "Overall";
 
   return (
     <main className="min-h-screen bg-[#0a0e17] text-white">
@@ -156,7 +193,7 @@ export default function Home() {
           {TIERS.map(t=>{
             const isActive = activeTier===t.id;
             return(
-              <button key={t.id} onClick={()=>setActiveTier(t.id)} 
+              <button key={t.id} onClick={()=>{setActiveTier(t.id); setHover(null);}} 
                 className={`flex flex-col items-center min-w-[105px] px-4 py-3 rounded-xl border font-bold text-[13px] transition
                 ${isActive ? 'bg-[#1e2535] border-[#2a344d] text-white shadow-lg' : 'bg-[#151a25] border-[#1e2535] text-zinc-500 hover:bg-[#1c2333] hover:text-zinc-300'}`}>
                 <img src={t.icon} className="w-7 h-7 mb-1.5"/>
@@ -167,6 +204,8 @@ export default function Home() {
           })}
         </div>
 
+        {/* ===== OVERALL - JAISA THA WAISA, KUCH CHANGE NAHI ===== */}
+        {!isGamemodeView && (
         <div className="bg-[#11161f] border border-[#1e2535] rounded-xl p-3 mt-1">
           <div className="flex justify-between items-center px-3 pb-4 pt-2">
             <div className="hidden md:flex text-[13px] font-black text-zinc-600 gap-4">
@@ -174,7 +213,6 @@ export default function Home() {
             </div>
             <button onClick={()=>{setInfoTab("Titles"); setShowInfo(true);}} className="ml-auto bg-[#1c2333] border border-[#2a344d] px-4 py-2 rounded-lg text-[13px] font-bold flex items-center gap-2 hover:bg-[#252e42]"><span className="w-5 h-5 bg-white text-black rounded-full flex items-center justify-center text-[11px]">i</span> Information</button>
           </div>
-
           <div className="space-y-2.5">
             {filtered.map((p:any,idx:number)=>{
               const rank=idx+1;
@@ -182,9 +220,7 @@ export default function Home() {
               const regionStyle = getRegionStyle(p.region||"ME");
               return(
                 <div key={p.discordId} onClick={()=>setSelected(p)} className="bg-[#151a25] border border-[#1e2535] rounded-xl flex items-center px-0 py-0 cursor-pointer hover:bg-[#1c2333] hover:border-[#2a344d] transition h-[78px] overflow-hidden group">
-                  <div className={`w-[90px] h-full flex items-center justify-center font-black italic text-[32px] ${getRankStyle(rank)} shrink-0`} style={{clipPath:"polygon(0 0, 80% 0, 100% 100%, 0 100%)"}}>
-                    {rank}.
-                  </div>
+                  <div className={`w-[90px] h-full flex items-center justify-center font-black italic text-[32px] ${getRankStyle(rank)} shrink-0`} style={{clipPath:"polygon(0 0, 80% 0, 100% 100%, 0 100%)"}}>{rank}.</div>
                   <img src={`https://mc-heads.net/avatar/${p.ign}/100`} className="w-[52px] h-[52px] ml-3 rounded-[4px] bg-[#0e121a]"/>
                   <div className="ml-4 flex flex-col justify-center">
                     <span className="font-extrabold text-[18px] leading-tight group-hover:text-white">{p.ign}</span>
@@ -218,7 +254,67 @@ export default function Home() {
             })}
           </div>
         </div>
+        )}
+
+        {/* ===== GAMEMODE VIEW - MCTIERS PHOTO JAISA ===== */}
+        {isGamemodeView && (
+        <div className="bg-[#11161f] border border-[#1e2535] rounded-xl p-3 mt-1">
+          <div className="flex justify-end gap-2 px-3 pb-4 pt-2 flex-wrap">
+            <span className="bg-[#1c2333] border border-[#2a344d] px-4 py-2 rounded-full text-[13px] font-bold">🏆 T2 Purge</span>
+            <button onClick={()=>{setInfoTab("Points"); setShowInfo(true);}} className="bg-[#1c2333] border border-[#2a344d] px-4 py-2 rounded-lg text-[13px] font-bold flex items-center gap-2 hover:bg-[#252e42]"><span className="w-5 h-5 bg-white text-black rounded-full flex items-center justify-center text-[11px]">i</span> Information</button>
+            <span className="bg-[#1c2333] border border-[#2a344d] px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-2">🛡️ <span className="flex flex-col leading-none text-left"><span className="text-[10px] text-zinc-500 font-bold">SERVER IP</span><span>mcpvp.club</span></span></span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-start px-1 pb-2">
+            {[1,2,3,4,5].map((tierNum)=>{
+              const style = TIER_COL_STYLES[tierNum-1];
+              const list = getTierBucket(tierNum);
+              return (
+                <div key={tierNum} className="bg-[#0f141b] rounded-xl overflow-hidden border border-[#1e2535]">
+                  <div className={`p-3.5 text-center text-[19px] font-extrabold ${style.head}`}>🏆 Tier {tierNum}</div>
+                  <div className="p-1.5">
+                    {list.map((p:any)=>{
+                      const parsed = parseTierString(getTierForMode(p.tiers, activeTier.toLowerCase()));
+                      const region = parsed?.region || "LT";
+                      return (
+                        <div key={p.discordId}
+                          onMouseEnter={(e)=>onHoverPlayer(e, p, activeTier)}
+                          onMouseMove={(e)=>onHoverPlayer(e, p, activeTier)}
+                          onMouseLeave={()=>setHover(null)}
+                          onClick={()=>setSelected(p)}
+                          className={`flex items-center gap-2 p-2 bg-[#1a2230] border-l-[3px] ${style.border} mb-1.5 rounded-md cursor-pointer text-[13.5px] font-medium hover:bg-[#243044] hover:translate-x-0.5 transition`}>
+                          <img src={`https://mc-heads.net/avatar/${p.ign}/100`} className="w-6 h-6 rounded bg-[#0e121a]" alt=""/>
+                          <span className="truncate">{p.ign}</span>
+                          <span className="ml-auto text-zinc-500 shrink-0">⋀</span>
+                        </div>
+                      );
+                    })}
+                    {list.length===0 && <div className="p-5 text-center text-zinc-500 text-[13px]">No players yet</div>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-center text-zinc-600 text-xs pb-2">Hover on any player to see Region + Tier • Click for full profile</p>
+        </div>
+        )}
       </div>
+
+      {/* ===== HOVER TOOLTIP - REGION + TIER ===== */}
+      {hover && (
+        <div className="fixed z-[9999] pointer-events-none bg-[#0f172a] border border-yellow-400 rounded-2xl p-3.5 w-[240px] shadow-2xl"
+          style={{ left: hover.x + 16 > (typeof window!=="undefined" ? window.innerWidth - 250 : 1000) ? hover.x - 250 : hover.x + 16, top: hover.y + 16 }}>
+          <div className="flex gap-2.5 items-center">
+            <img src={`https://mc-heads.net/avatar/${hover.p.ign}/100`} className="w-10 h-10 rounded-lg bg-[#0e121a]" alt=""/>
+            <div><h4 className="font-bold leading-tight">{hover.p.ign}</h4><div className="text-xs text-zinc-400">{hover.mode} • {getTitleStyle(hover.p.points||0).name}</div></div>
+          </div>
+          <div className="flex justify-between mt-3 text-[12.5px] text-gray-300"><span>🌍 Region</span><span className={`px-2.5 py-0.5 rounded-full font-extrabold text-[11px] ${hover.region==="HT" ? "bg-red-600 text-white" : "bg-blue-600 text-white"}`}>{hover.region==="HT" ? "HT - High Tier" : "LT - Low Tier"}</span></div>
+          <div className="flex justify-between mt-2 text-[12.5px] text-gray-300"><span>🏆 Tier</span><span className="px-2.5 py-0.5 rounded-full font-extrabold text-[11px] bg-yellow-400 text-black">TIER {hover.tier} - {hover.region}</span></div>
+          <div className="flex justify-between mt-2 text-[12.5px] text-gray-300"><span>🎮 Gamemode</span><span>{hover.mode}</span></div>
+          <div className="flex justify-between mt-2 text-[12.5px] text-gray-300"><span>⭐ Points</span><span className="font-bold text-yellow-400">{hover.p.points||0}</span></div>
+          <div className="text-center text-[11px] text-zinc-500 mt-3">Click for full profile →</div>
+        </div>
+      )}
 
       {selected && (() => {
         const titleStyle = getTitleStyle(selected.points||0);
