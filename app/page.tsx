@@ -58,7 +58,6 @@ function getTierForMode(tiers:any, gm:string){
   return tiers[key] || null;
 }
 
-// ===== NEW: "HT1" / "LT3" ko parse karo -> { region: "HT", tier: 1 } =====
 function parseTierString(raw: any){
   if(!raw) return null;
   const s = String(raw).toUpperCase().trim();
@@ -81,7 +80,6 @@ function getRegionStyle(region: string){
   return "bg-zinc-700/20 text-zinc-400 border-zinc-600/30";
 }
 
-// Tier column colors - photo jaisa
 const TIER_COL_STYLES = [
   { head: "bg-[#4a3205] text-[#fbbf24]", border: "border-l-red-500", badge: "bg-[#3f2f0a] text-[#fbbf24] border-amber-600/30" },
   { head: "bg-[#2a2f3a] text-zinc-200", border: "border-l-green-500", badge: "bg-[#232a36] text-zinc-300 border-zinc-600/30" },
@@ -97,7 +95,6 @@ export default function Home() {
   const [selected, setSelected] = useState<any>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [infoTab, setInfoTab] = useState<"Titles"|"Points">("Titles");
-  // ===== NEW: Hover tooltip state =====
   const [hover, setHover] = useState<{ p: any; region: "HT"|"LT"; tier: number; mode: string; x: number; y: number } | null>(null);
 
   useEffect(() => {
@@ -112,15 +109,12 @@ export default function Home() {
             if(!tiers) tiers = {};
             const low: any = {};
             Object.keys(tiers).forEach(k => low[k.toLowerCase()] = tiers[k]);
-
             if(low.spearmace && !low.spear) low.spear = low.spearmace;
             if(low.cpvp && !low.vanilla) low.vanilla = low.cpvp;
             if(low.nethsmp && !low.smp) low.smp = low.nethsmp;
-
             delete low.spearmace;
             delete low.cpvp;
             delete low.nethsmp;
-
             const finalTiers: any = {};
             for(let k in low){
               finalTiers[k.toLowerCase()] = (low[k] || "").toString().toUpperCase();
@@ -146,7 +140,6 @@ export default function Home() {
     return p.tiers?.[key];
   });
 
-  // ===== NEW: Gamemode ke liye Tier 1-5 buckets banao (bot ke data se) =====
   const getTierBucket = (tierNum: number) => {
     const key = activeTier.toLowerCase();
     return filtered.filter((p:any)=>{
@@ -204,7 +197,7 @@ export default function Home() {
           })}
         </div>
 
-        {/* ===== OVERALL - JAISA THA WAISA, KUCH CHANGE NAHI ===== */}
+        {/* ===== OVERALL - JAISA THA WAISA ===== */}
         {!isGamemodeView && (
         <div className="bg-[#11161f] border border-[#1e2535] rounded-xl p-3 mt-1">
           <div className="flex justify-between items-center px-3 pb-4 pt-2">
@@ -256,13 +249,11 @@ export default function Home() {
         </div>
         )}
 
-        {/* ===== GAMEMODE VIEW - MCTIERS PHOTO JAISA ===== */}
+        {/* ===== GAMEMODE VIEW - TIER HEADERS ME OVERALL ICON ===== */}
         {isGamemodeView && (
         <div className="bg-[#11161f] border border-[#1e2535] rounded-xl p-3 mt-1">
-          <div className="flex justify-end gap-2 px-3 pb-4 pt-2 flex-wrap">
-            <span className="bg-[#1c2333] border border-[#2a344d] px-4 py-2 rounded-full text-[13px] font-bold">🏆 T2 Purge</span>
+          <div className="flex justify-end gap-2 px-3 pb-4 pt-2">
             <button onClick={()=>{setInfoTab("Points"); setShowInfo(true);}} className="bg-[#1c2333] border border-[#2a344d] px-4 py-2 rounded-lg text-[13px] font-bold flex items-center gap-2 hover:bg-[#252e42]"><span className="w-5 h-5 bg-white text-black rounded-full flex items-center justify-center text-[11px]">i</span> Information</button>
-            <span className="bg-[#1c2333] border border-[#2a344d] px-4 py-2 rounded-full text-[13px] font-bold flex items-center gap-2">🛡️ <span className="flex flex-col leading-none text-left"><span className="text-[10px] text-zinc-500 font-bold">SERVER IP</span><span>mcpvp.club</span></span></span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-start px-1 pb-2">
@@ -271,11 +262,13 @@ export default function Home() {
               const list = getTierBucket(tierNum);
               return (
                 <div key={tierNum} className="bg-[#0f141b] rounded-xl overflow-hidden border border-[#1e2535]">
-                  <div className={`p-3.5 text-center text-[19px] font-extrabold ${style.head}`}>🏆 Tier {tierNum}</div>
+                  {/* CHANGED: 🏆 emoji -> /icons/overall.png */}
+                  <div className={`p-3.5 text-center text-[19px] font-extrabold flex items-center justify-center gap-2 ${style.head}`}>
+                    <img src="/icons/overall.png" className="w-6 h-6 object-contain" alt=""/>
+                    Tier {tierNum}
+                  </div>
                   <div className="p-1.5">
                     {list.map((p:any)=>{
-                      const parsed = parseTierString(getTierForMode(p.tiers, activeTier.toLowerCase()));
-                      const region = parsed?.region || "LT";
                       return (
                         <div key={p.discordId}
                           onMouseEnter={(e)=>onHoverPlayer(e, p, activeTier)}
